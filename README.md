@@ -1,27 +1,27 @@
-# 🎤 The Empathy Engine — Giving AI a Human Voice
+# The Empathy Engine - Giving AI a Human Voice
 
-> A production-grade AI system that detects blended emotions in text and generates highly expressive, human-like speech with context-aware modulation.
+> A production grade AI system that detects blended emotions in text and generates highly expressive, human like speech with context aware modulation.
 
 ---
 
 ## ✨ Features
 
-| Feature | Status |
-|---|---|
-| Blended Multi-Emotion Detection (Top-2 Mix) | ✅ |
-| 15 Combined Emotional Profiles ("Bittersweet", etc.) | ✅ |
-| Confidence-scaled voice interpolation | ✅ |
-| ElevenLabs neural TTS (primary) | ✅ |
-| pyttsx3 offline fallback | ✅ |
-| Output formats: MP3 or natively constructed WAV | ✅ |
-| Multi-voice selector (6 voices) | ✅ |
-| Vercel-like Minimalist Web UI | ✅ |
-| Real-time pipeline visualization & Audio history | ✅ |
-| REST API with FastAPI | ✅ |
+| Feature                                              | Status |
+| ---------------------------------------------------- | ------ |
+| Blended Multi-Emotion Detection (Top-2 Mix)          | ✅      |
+| 15 Combined Emotional Profiles ("Bittersweet", etc.) | ✅      |
+| Confidence-scaled voice interpolation                | ✅      |
+| ElevenLabs neural TTS (primary)                      | ✅      |
+| pyttsx3 offline fallback                             | ✅      |
+| Output formats: MP3 or natively constructed WAV      | ✅      |
+| Multi-voice selector (6 voices)                      | ✅      |
+| Vercel-like Minimalist Web UI                        | ✅      |
+| Real-time pipeline visualization & Audio history     | ✅      |
+| REST API with FastAPI                                | ✅      |
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 The Empathy Engine/
@@ -44,7 +44,9 @@ The Empathy Engine/
 └── .env                     ← API key (never commit this)
 ```
 
-### Emotion Pipeline
+---
+
+## Emotion Pipeline
 
 ```
 Text Input
@@ -61,94 +63,108 @@ Text Input
 ┌────────────────────────────────────┐
 │  Voice Mapper                      │
 │  → Interpolates stability & style  │
-│  → Context-aware phrases (prefix)  │
-│  → SSML preview string            │
+│  → Context aware phrases (prefix)  │
+│  → SSML preview string             │
 └────────────────┬───────────────────┘
                  │
                  ▼
 ┌────────────────────────────────────┐
 │  TTS Engine                        │
-│  Primary:  ElevenLabs API (MP3/PCM)│
-│  Fallback: pyttsx3 (Native WAV)   │
+│  Primary: ElevenLabs API (MP3/PCM) │
+│  Fallback: pyttsx3 (Native WAV)    │
 └────────────────┬───────────────────┘
                  │
                  ▼
-         Audio File (.mp3 / .wav)
-         Served via /api/audio/
+        Audio File (.mp3 / .wav)
+        Served via /api/audio/
 ```
 
 ---
 
-## 🎭 Emotion → Voice Mapping
+## Emotion → Voice Mapping
 
 When the system detects a single emotion (or one vastly overpowers the other), it uses pure voice profiles.
 
-**Example Pure Baselines:**
-| Emotion | Pitch | Rate | Stability | Style |
-|---|---|---|---|---|
-| Joy | High (+3st) | Fast | 0.25 | 0.60+ |
-| Sadness | Low (-3st) | Slow | 0.80 | 0.20 |
-| Anger | Low-Mid (-1st) | Fast | 0.30 | 0.70+ |
-| Fear | High-Mid (+1st) | Slightly Slow | 0.60 | 0.45 |
+### Example Pure Baselines:
 
-**Blended Interpolation:**
-If two emotions are present (e.g. Joy 50%, Sadness 40%), the `voice_mapper` calculates a weighted average of their baseline Stability and Style parameters. The system also maps this combination to a human-readable Tone like **"Bittersweet"** and attaches a connector phrase to improve TwelveLabs' inflection.
+| Emotion | Pitch           | Rate          | Stability | Style |
+| ------- | --------------- | ------------- | --------- | ----- |
+| Joy     | High (+3st)     | Fast          | 0.25      | 0.60+ |
+| Sadness | Low (-3st)      | Slow          | 0.80      | 0.20  |
+| Anger   | Low-Mid (-1st)  | Fast          | 0.30      | 0.70+ |
+| Fear    | High-Mid (+1st) | Slightly Slow | 0.60      | 0.45  |
+
+### Blended Interpolation
+
+If two emotions are present (e.g. Joy 50%, Sadness 40%), the `voice_mapper` calculates a weighted average of their baseline Stability and Style parameters.
+
+The system also maps this combination to a human readable Tone like **"Bittersweet"** and attaches a connector phrase to improve ElevenLabs' inflection.
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 ### Prerequisites
-- Python 3.10+
-- Internet connection (for ElevenLabs API & HuggingFace model download)
+
+* Python 3.10+
+* Internet connection (for ElevenLabs API & HuggingFace model download)
 
 ### 1. Create virtual environment
+
 ```bash
 python -m venv .venv
+
 # Windows
 .venv\Scripts\activate
+
 # macOS/Linux
 source .venv/bin/activate
 ```
 
 ### 2. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Note:** The first run will download the HuggingFace model (~330MB). Subsequent starts are instant.
+> Note: The first run will download the HuggingFace model (~330MB). Subsequent starts are instant.
 
 ### 3. Configure API key
+
 Edit `.env`:
+
 ```env
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 ```
 
 ### 4. Run the server
+
 ```bash
 python run.py
 ```
 
-Open your browser at **http://127.0.0.1:8000** (or `8001` depending on port settings).
+Open your browser at **http://127.0.0.1:8000**
 
 ---
 
-## 🌐 API Reference
+## API Reference
 
-### `POST /api/generate`
+### POST /api/generate
+
 Run the full emotion-to-speech pipeline.
 
 **Request body (JSON):**
+
 ```json
 {
   "text": "I got the job offer but I'll really miss my old team.",
   "voice_id": "EXAVITQu4vr4xnSDxMaL",
-  "output_format": "mp3" 
+  "output_format": "mp3"
 }
 ```
-*(Optionally set `output_format` to `"wav"` to receive parsed PCM WAV structures).*
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -156,26 +172,26 @@ Run the full emotion-to-speech pipeline.
     "label": "sadness",
     "score": 0.52,
     "intensity": "medium",
-    "emoji": "😢",
+    "emoji": "",
     "color": "#6495ED"
   },
   "primary_emotion": {
     "label": "sadness",
     "score": 0.52,
     "intensity": "medium",
-    "emoji": "😢"
+    "emoji": ""
   },
   "secondary_emotion": {
     "label": "joy",
     "score": 0.44,
     "intensity": "medium",
-    "emoji": "😄"
+    "emoji": ""
   },
   "blended_emotion": {
     "is_blended": true,
     "label": "Bittersweet",
     "description": "Happy yet a little sad...",
-    "emoji": "🥹"
+    "emoji": ""
   },
   "voice_settings": {
     "stability": 0.52,
@@ -197,24 +213,31 @@ Run the full emotion-to-speech pipeline.
 
 ---
 
-### `GET /api/voices`
-List all available voices.
+### GET /api/voices
 
 ```json
 {
   "voices": [
-    { "id": "EXAVITQu4vr4xnSDxMaL", "name": "Sarah", "description": "Warm & expressive", "gender": "female" }
+    {
+      "id": "EXAVITQu4vr4xnSDxMaL",
+      "name": "Sarah",
+      "description": "Warm & expressive",
+      "gender": "female"
+    }
   ],
   "default_voice_id": "EXAVITQu4vr4xnSDxMaL"
 }
 ```
 
-### `GET /api/audio/{filename}`
-Stream or download a generated audio file cleanly serving correct `audio/mpeg` or `audio/wav` MIME types automatically.
+---
+
+### GET /api/audio/{filename}
+
+Stream or download a generated audio file.
 
 ---
 
-## 🚀 Development
+## Development
 
 ```bash
 # Hot-reload mode
@@ -227,12 +250,13 @@ python run.py --port 8080
 python run.py --host 0.0.0.0
 ```
 
-API docs available at: `http://127.0.0.1:8000/docs`
+API docs:
+http://127.0.0.1:8000/docs
 
 ---
 
-## 📝 Notes
+## Notes
 
-- Audio files are saved to `empathy_engine/outputs/` (auto-cleaned after 24h)
-- If ElevenLabs fails or limits are hit, the system automatically falls back to pyttsx3 (offline, robotic) while seamlessly honoring your requested format wrapper (`WAV` or `MP3`).
-- The HuggingFace model truncates inputs longer than 512 tokens.
+* Audio files are saved to `empathy_engine/outputs/` (auto-cleaned after 24h)
+* If ElevenLabs fails or limits are hit, the system falls back to pyttsx3
+* The HuggingFace model truncates inputs longer than 512 tokens
