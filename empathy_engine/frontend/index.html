@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Empathy Engine</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Vercel-like Minimalist Design System */
+    :root {
+      --bg-body: #FAFAFA;
+      --bg-surface: #FFFFFF;
+      --text-main: #111111;
+      --text-muted: #666666;
+      --border-color: #EAEAEA;
+      --border-hover: #000000;
+      --accent: #000000;
+      --radius: 8px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --transition: 0.2s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    .container {
+      max-width: 768px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    /* Input */
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color var(--transition);
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--text-main);
+    }
+
+    .textarea-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .char-count {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .quick-tests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-tests button {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .quick-tests button:hover {
+      border-color: var(--border-hover);
+      color: var(--text-main);
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+      align-items: flex-end;
+    }
+
+    .voice-select-wrapper {
+      flex: 1;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 1rem;
+      background-color: var(--bg-surface);
+      cursor: pointer;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    select:focus {
+      border-color: var(--text-main);
+    }
+
+    button.primary {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 13px 24px;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity var(--transition), transform 0.1s;
+      white-space: nowrap;
+    }
+
+    button.primary:hover {
+      opacity: 0.85;
+    }
+
+    button.primary:active {
+      transform: scale(0.98);
+    }
+
+    button.primary:disabled {
+      background-color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Loader */
+    .loader {
+      display: none;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 20px 0;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Results */
+    #result-section {
+      display: none;
+    }
+
+    .emotion-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .emotion-col {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .emotion-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: #f5f5f5;
+    }
+
+    .emotion-score {
+      font-size: 0.85rem;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .blend-result {
+      padding: 16px;
+      background: var(--bg-body);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .blend-result p {
+      margin: 4px 0 0 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .voice-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .voice-meta span {
+      background: var(--bg-body);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Audio Player */
+    .audio-wrapper {
+      margin-bottom: 24px;
+    }
+    
+    .audio-wrapper audio {
+      width: 100%;
+      max-width: 100%; /* Fixes the bug where voice bar exceeded screen */
+      height: 48px;
+      outline: none;
+    }
+
+    .secondary-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .secondary-action:hover {
+      text-decoration: underline;
+    }
+
+    /* History */
+    #history-section {
+      display: none;
+    }
+    
+    .history-item {
+      padding: 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color var(--transition);
+    }
+
+    .history-item:hover {
+      border-color: var(--border-hover);
+    }
+
+    .history-text {
+      flex: 1;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    
+    .error-box {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button.primary {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>The Empathy Engine</h1>
+      <p>Simplistic, Emotionally Expressive AI Speech</p>
+    </header>
+
+    <div class="error-box" id="error-box"></div>
+
+    <div class="card">
+      <span class="label">Text to speech</span>
+      <textarea id="text-input" placeholder="Type a message here..." maxlength="2000"></textarea>
+      
+      <div class="textarea-footer">
+        <div class="quick-tests">
+          <button data-text="I'm really excited about this new project!">😄 Excited</button>
+          <button data-text="This is so frustrating and disappointing.">😠 Frustrated</button>
+          <button data-text="I got the job offer but I'll really miss my old team.">🥹 Bittersweet</button>
+          <button data-text="I'm thrilled to perform tonight but honestly terrified!">😬 Excited+Fear</button>
+        </div>
+        <div class="char-count" id="char-count">0 / 2000</div>
+      </div>
+
+      <div class="controls">
+        <div class="voice-select-wrapper">
+          <span class="label">Voice</span>
+          <select id="voice-select">
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+        <div class="voice-select-wrapper" style="max-width: 120px;">
+          <span class="label">Format</span>
+          <select id="format-select">
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+          </select>
+        </div>
+        <button class="primary" id="generate-btn">Generate Audio</button>
+      </div>
+    </div>
+
+    <div class="loader" id="loader">Analyzing emotion & generating voice...</div>
+
+    <div id="result-section" class="card">
+      <span class="label">Result</span>
+      
+      <div class="audio-wrapper">
+        <audio id="audio-player" controls preload="auto"></audio>
+      </div>
+
+      <div class="emotion-row">
+        <div class="emotion-col">
+          <span class="label" style="font-size:0.75rem">Primary Emotion</span>
+          <div class="emotion-tag" id="primary-tag" style="background:#f0fdf4; color:#166534">
+            <span id="primary-emoji">😐</span> <span id="primary-label">Neutral</span>
+            <span class="emotion-score" id="primary-score">100%</span>
+          </div>
+        </div>
+        
+        <div class="emotion-col" id="secondary-col">
+          <span class="label" style="font-size:0.75rem">Secondary Emotion</span>
+          <div class="emotion-tag" id="secondary-tag" style="background:#fafafa; color:#111">
+            <span id="secondary-emoji">😐</span> <span id="secondary-label">Neutral</span>
+            <span class="emotion-score" id="secondary-score">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blend-result" id="blend-result">
+        <span class="label" style="font-size:0.75rem; margin-bottom:4px">Overall Tone</span>
+        <strong style="font-size:1.1rem" id="blend-label">Neutral</strong>
+        <p id="blend-desc">Matter-of-fact or calm</p>
+      </div>
+
+      <div class="voice-meta" id="voice-meta">
+        <span id="engine-info">Engine: —</span>
+        <span id="voice-info">Voice: —</span>
+        <span id="intensity-info">Intensity: —</span>
+      </div>
+
+      <div>
+        <a id="download-link" href="#" download class="secondary-action">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Audio
+        </a>
+      </div>
+    </div>
+
+    <div id="history-section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="label" style="margin:0">History</span>
+        <button class="secondary-action" style="border:none;background:none;cursor:pointer;font-size:0.8rem;" onclick="clearHistory()">Clear</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const API_BASE = "";
+    
+    // Core Elements
+    const textInput = document.getElementById("text-input");
+    const charCount = document.getElementById("char-count");
+    const voiceSelect = document.getElementById("voice-select");
+    const formatSelect = document.getElementById("format-select");
+    const generateBtn = document.getElementById("generate-btn");
+    const loader = document.getElementById("loader");
+    const resultSection = document.getElementById("result-section");
+    const errorBox = document.getElementById("error-box");
+    const audioPlayer = document.getElementById("audio-player");
+    const historySection = document.getElementById("history-section");
+    const historyList = document.getElementById("history-list");
+
+    let history = JSON.parse(localStorage.getItem("empathy_history") || "[]");
+
+    // Init
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadVoices();
+      setupQuickTests();
+      renderHistory();
+      textInput.focus();
+    });
+
+    // Character counter
+    textInput.addEventListener("input", () => {
+      charCount.textContent = `${textInput.value.length} / 2000`;
+    });
+
+    // Quick Tests
+    function setupQuickTests() {
+      document.querySelectorAll(".quick-tests button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          textInput.value = btn.dataset.text;
+          textInput.dispatchEvent(new Event("input"));
+        });
+      });
+    }
+
+    async function loadVoices() {
+      try {
+        const resp = await fetch(`${API_BASE}/api/voices`);
+        if (!resp.ok) throw new Error("Could not load voices");
+        const data = await resp.json();
+        voiceSelect.innerHTML = "";
+        data.voices.forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = v.id;
+          opt.textContent = `${v.name} (${v.gender})`;
+          if (v.id === data.default_voice_id) opt.selected = true;
+          voiceSelect.appendChild(opt);
+        });
+      } catch (e) {
+        voiceSelect.innerHTML = '<option value="">Default voice</option>';
+      }
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+    }
+
+    function hideError() {
+      errorBox.style.display = "none";
+    }
+
+    function capitalize(str) {
+      return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+    }
+
+    // Generate Pipeline
+    generateBtn.addEventListener("click", async () => {
+      const text = textInput.value.trim();
+      if (!text) return showError("Please enter some text.");
+      
+      hideError();
+      generateBtn.disabled = true;
+      loader.style.display = "block";
+      resultSection.style.display = "none";
+
+      try {
+        const payload = {
+          text,
+          voice_id: voiceSelect.value || undefined,
+          output_format: formatSelect.value,
+        };
+
+        const resp = await fetch(`${API_BASE}/api/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderResult(data, text);
+        
+        saveHistory({
+          text,
+          primary: data.primary_emotion || data.emotion,
+          blend: data.blended_emotion,
+          audioUrl: data.audio_url,
+          timestamp: new Date().toISOString()
+        });
+
+      } catch (err) {
+        showError(`Error: ${err.message}`);
+      } finally {
+        generateBtn.disabled = false;
+        loader.style.display = "none";
+      }
+    });
+
+    function renderResult(data, text) {
+      const primary = data.primary_emotion || data.emotion;
+      const secondary = data.secondary_emotion || data.emotion;
+      const blend = data.blended_emotion || {
+        label: capitalize(primary.label), emoji: primary.emoji,
+        color: primary.color, description: primary.description || "",
+        is_blended: false
+      };
+
+      // Set Primary
+      document.getElementById("primary-emoji").textContent = primary.emoji;
+      document.getElementById("primary-label").textContent = capitalize(primary.label);
+      document.getElementById("primary-score").textContent = `${Math.round(primary.score * 100)}%`;
+      document.getElementById("primary-tag").style.background = `${primary.color}15`;
+      document.getElementById("primary-tag").style.color = primary.color;
+
+      // Set Secondary Note
+      const secCol = document.getElementById("secondary-col");
+      if (blend.is_blended && secondary.score > 0) {
+        secCol.style.display = "block";
+        document.getElementById("secondary-emoji").textContent = secondary.emoji;
+        document.getElementById("secondary-label").textContent = capitalize(secondary.label);
+        document.getElementById("secondary-score").textContent = `${Math.round(secondary.score * 100)}%`;
+        document.getElementById("secondary-tag").style.background = `${secondary.color}15`;
+        document.getElementById("secondary-tag").style.color = secondary.color;
+      } else {
+        secCol.style.display = "none";
+      }
+
+      // Blend Tone
+      document.getElementById("blend-label").textContent = `${blend.emoji} ${capitalize(blend.label)}`;
+      document.getElementById("blend-desc").textContent = blend.description;
+
+      // Meta info
+      document.getElementById("engine-info").textContent = `Engine: ${data.tts_engine_used}`;
+      document.getElementById("voice-info").textContent = `Voice: ${data.voice_name}`;
+      document.getElementById("intensity-info").textContent = `Intensity: ${capitalize(primary.intensity)}`;
+
+      // Audio
+      audioPlayer.src = `${API_BASE}${data.audio_url}`;
+      document.getElementById("download-link").href = `${API_BASE}${data.audio_url}`;
+      document.getElementById("download-link").download = `empathy_audio_${new Date().getTime()}.${formatSelect.value}`;
+      
+      resultSection.style.display = "block";
+      audioPlayer.play().catch(e => console.log("Autoplay prevented:", e));
+    }
+
+    function saveHistory(entry) {
+      history.unshift(entry);
+      if (history.length > 10) history = history.slice(0, 10);
+      localStorage.setItem("empathy_history", JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (history.length === 0) {
+        historySection.style.display = "none";
+        return;
+      }
+      historySection.style.display = "block";
+      historyList.innerHTML = history.map((item, idx) => {
+        const emoji = item.blend?.emoji || item.primary?.emoji || "😐";
+        const label = item.blend?.is_blended ? item.blend.label : item.primary?.label || "Unknown";
+        return `
+          <div class="history-item" onclick="replayHistory(${idx})">
+            <span style="font-size:1.2rem">${emoji}</span>
+            <div class="history-text">${item.text.replace(/</g, "&lt;")}</div>
+            <div class="history-meta">${capitalize(label)}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function replayHistory(idx) {
+      const item = history[idx];
+      if (item && item.audioUrl) {
+        audioPlayer.src = `${API_BASE}${item.audioUrl}`;
+        audioPlayer.play().catch(()=>{});
+        resultSection.style.display = "block";
+      }
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.removeItem("empathy_history");
+      renderHistory();
+    }
+  </script>
+</body>
+</html>
