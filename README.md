@@ -1,6 +1,6 @@
 # The Empathy Engine - Giving AI a Human Voice
 
-> A production grade AI system that detects blended emotions in text and generates highly expressive, human like speech with context aware modulation.
+> A production grade AI system that detects blended emotions in text and generates highly expressive, human-like speech with context-aware modulation.
 
 ---
 
@@ -14,39 +14,53 @@
 | ElevenLabs neural TTS (primary)                      | ✅      |
 | pyttsx3 offline fallback                             | ✅      |
 | Output formats: MP3 or natively constructed WAV      | ✅      |
-| Multi-voice selector (6 voices)                      | ✅      |
-| Vercel-like Minimalist Web UI                        | ✅      |
+| Multi-voice selector (15 verified voices)            | ✅      |
+| Modern Responsive Web UI (HTML5 / Vanilla CSS / JS)  | ✅      |
 | Real-time pipeline visualization & Audio history     | ✅      |
-| REST API with FastAPI                                | ✅      |
+| REST API with FastAPI & Modular Architecture         | ✅      |
 
 ---
 
-## Architecture
+## 🏗 Architecture & Project Structure
+
+The project follows a standard **Frontend / Backend** separation of concerns:
 
 ```
-The Empathy Engine/
-├── empathy_engine/
-│   ├── backend/
+The-Empathy-Engine/
+├── backend/
+│   ├── app/
 │   │   ├── __init__.py
-│   │   ├── config.py        ← All settings, voice catalog, env loading
-│   │   ├── emotion.py       ← HuggingFace emotion classifier (w/ Blended logic)
-│   │   ├── voice_mapper.py  ← Emotion interpolation + Blend-aware SSML Builder
-│   │   ├── tts_engine.py    ← ElevenLabs + pyttsx3 fallback (MP3/WAV outputs)
-│   │   ├── models.py        ← Pydantic API contracts
-│   │   └── main.py          ← FastAPI app, routes, static serving
-│   ├── frontend/
-│   │   └── index.html       ← Simplistic, responsive single-page UI
+│   │   ├── config.py         ← Central settings, voice catalog, env loader
+│   │   ├── emotion.py        ← HuggingFace emotion classifier (w/ Top-2 blend logic)
+│   │   ├── models.py         ← Pydantic API contracts & validation schemas
+│   │   ├── tts_engine.py     ← ElevenLabs + pyttsx3 fallback (MP3/WAV outputs)
+│   │   └── voice_mapper.py   ← Emotion interpolation + Blend-aware SSML builder
 │   ├── utils/
-│   │   └── cache.py         ← MD5-based audio caching
-│   └── outputs/             ← Generated audio files (auto-created)
-├── run.py                   ← Convenience launcher
-├── requirements.txt
-└── .env                     ← API key (never commit this)
+│   │   ├── __init__.py
+│   │   └── cache.py          ← MD5-based audio caching & TTL cleanup
+│   ├── outputs/              ← Generated and cached audio files
+│   ├── main.py               ← FastAPI app, CORS, API routes & static mounting
+│   ├── requirements.txt      ← Backend Python dependencies
+│   └── __init__.py
+├── frontend/
+│   ├── index.html            ← Semantic HTML5 single-page application
+│   ├── css/
+│   │   └── style.css         ← Modern design system, glassmorphism & responsive layout
+│   ├── js/
+│   │   ├── app.js            ← Frontend application logic, audio playback & history
+│   │   └── config.js         ← Dynamic API URL detection & configuration
+│   └── assets/
+│       └── samples/          ← Bundled sample audio files
+├── sample_audio/             ← Reference audio examples
+├── .env.example              ← Environment variables template
+├── requirements.txt          ← Root dependencies pointer
+├── run.py                    ← Convenience launcher
+└── README.md
 ```
 
 ---
 
-## Emotion Pipeline
+## 🔬 Emotion Pipeline
 
 ```
 Text Input
@@ -63,7 +77,7 @@ Text Input
 ┌────────────────────────────────────┐
 │  Voice Mapper                      │
 │  → Interpolates stability & style  │
-│  → Context aware phrases (prefix)  │
+│  → Context-aware phrases (prefix)  │
 │  → SSML preview string             │
 └────────────────┬───────────────────┘
                  │
@@ -76,12 +90,12 @@ Text Input
                  │
                  ▼
         Audio File (.mp3 / .wav)
-        Served via /api/audio/
+        Served via /api/audio/ or /outputs/
 ```
 
 ---
 
-## Emotion → Voice Mapping
+## 🎛 Emotion → Voice Mapping
 
 When the system detects a single emotion (or one vastly overpowers the other), it uses pure voice profiles.
 
@@ -98,18 +112,18 @@ When the system detects a single emotion (or one vastly overpowers the other), i
 
 If two emotions are present (e.g. Joy 50%, Sadness 40%), the `voice_mapper` calculates a weighted average of their baseline Stability and Style parameters.
 
-The system also maps this combination to a human readable Tone like **"Bittersweet"** and attaches a connector phrase to improve ElevenLabs' inflection.
+The system also maps this combination to a human-readable tone like **"Bittersweet"** and attaches a connector phrase to improve natural vocal inflection.
 
 ---
 
-## Setup
+## 🚀 Setup & Execution
 
 ### Prerequisites
 
 * Python 3.10+
 * Internet connection (for ElevenLabs API & HuggingFace model download)
 
-### 1. Create virtual environment
+### 1. Create Virtual Environment
 
 ```bash
 python -m venv .venv
@@ -117,19 +131,25 @@ python -m venv .venv
 # Windows
 .venv\Scripts\activate
 
-# macOS/Linux
+# macOS / Linux
 source .venv/bin/activate
 ```
 
-### 2. Install dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> Note: The first run will download the HuggingFace model (~330MB). Subsequent starts are instant.
+> Note: The first run will download the HuggingFace model (~330MB). Subsequent starts are cached and instant.
 
-### 3. Configure API key
+### 3. Configure API Key (Optional)
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
 
 Edit `.env`:
 
@@ -137,19 +157,32 @@ Edit `.env`:
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 ```
 
-### 4. Run the server
+*(If omitted or unconfigured, the system automatically uses `pyttsx3` for offline text-to-speech).*
+
+### 4. Run Server
+
+#### Option A: Unified Launcher (Backend + Frontend)
 
 ```bash
 python run.py
 ```
 
-Open your browser at **http://127.0.0.1:8000**
+* **Frontend**: `http://127.0.0.1:8000/`
+* **Swagger API Docs**: `http://127.0.0.1:8000/docs`
+
+#### Option B: Standalone Frontend Development
+
+You can run the backend:
+```bash
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+```
+And serve the `frontend/` directory with any static file server (e.g. VS Code Live Server, Vite, `npx serve frontend`, or `python -m http.server 3000 --directory frontend`). The frontend automatically routes requests to `http://127.0.0.1:8000`.
 
 ---
 
-## API Reference
+## 📡 API Reference
 
-### POST /api/generate
+### `POST /api/generate`
 
 Run the full emotion-to-speech pipeline.
 
@@ -168,40 +201,36 @@ Run the full emotion-to-speech pipeline.
 ```json
 {
   "success": true,
-  "emotion": {
-    "label": "sadness",
-    "score": 0.52,
-    "intensity": "medium",
-    "emoji": "",
-    "color": "#6495ED"
-  },
   "primary_emotion": {
     "label": "sadness",
     "score": 0.52,
     "intensity": "medium",
-    "emoji": ""
+    "emoji": "😢",
+    "color": "#6495ED"
   },
   "secondary_emotion": {
     "label": "joy",
     "score": 0.44,
     "intensity": "medium",
-    "emoji": ""
+    "emoji": "😄",
+    "color": "#FFD700"
   },
   "blended_emotion": {
     "is_blended": true,
-    "label": "Bittersweet",
-    "description": "Happy yet a little sad...",
-    "emoji": ""
+    "label": "bittersweet",
+    "description": "Happy yet touched with sorrow",
+    "emoji": "🥹",
+    "color": "#C8A2C8"
   },
   "voice_settings": {
     "stability": 0.52,
     "similarity_boost": 0.75,
     "style": 0.40,
     "use_speaker_boost": true,
-    "pitch_label": "Interpolated",
-    "rate_label": "Interpolated"
+    "pitch_label": "Low / High",
+    "rate_label": "Slow / Fast"
   },
-  "ssml_preview": "<speak>\n  <prosody rate=\"medium\" pitch=\"0st\">\n    Happy yet a little sad... I got the job offer but I'll really miss my old team.\n  </prosody>\n</speak>",
+  "ssml_preview": "<speak>\n  <prosody rate=\"slow\" pitch=\"-3st\">\n    Happy yet a little sad... I got the job offer but I'll really miss my old team.\n  </prosody>\n</speak>",
   "audio_url": "/outputs/audio_<uuid>.mp3",
   "audio_filename": "audio_<uuid>.mp3",
   "voice_used": "EXAVITQu4vr4xnSDxMaL",
@@ -213,50 +242,41 @@ Run the full emotion-to-speech pipeline.
 
 ---
 
-### GET /api/voices
+### `GET /api/voices`
 
-```json
-{
-  "voices": [
-    {
-      "id": "EXAVITQu4vr4xnSDxMaL",
-      "name": "Sarah",
-      "description": "Warm & expressive",
-      "gender": "female"
-    }
-  ],
-  "default_voice_id": "EXAVITQu4vr4xnSDxMaL"
-}
-```
+Returns available voice catalog.
 
 ---
 
-### GET /api/audio/{filename}
+### `GET /api/health`
+
+Returns system status and model initialization state.
+
+---
+
+### `GET /api/audio/{filename}`
 
 Stream or download a generated audio file.
 
 ---
 
-## Development
+## 🛠 Development Options
 
 ```bash
 # Hot-reload mode
 python run.py --reload
 
-# Different port
+# Custom port
 python run.py --port 8080
 
-# Public access
+# Bind all interfaces
 python run.py --host 0.0.0.0
 ```
 
-API docs:
-http://127.0.0.1:8000/docs
-
 ---
 
-## Notes
+## 📝 Notes
 
-* Audio files are saved to `empathy_engine/outputs/` (auto-cleaned after 24h)
-* If ElevenLabs fails or limits are hit, the system falls back to pyttsx3
-* The HuggingFace model truncates inputs longer than 512 tokens
+* Audio outputs are saved to [`backend/outputs/`](file:///c:/Users/shubh/OneDrive/Desktop/Gen%20AI%20Projects/The-Empathy-Engine/backend/outputs)
+* If ElevenLabs fails or limits are exceeded, the system automatically falls back to `pyttsx3`
+* HuggingFace emotion model supports up to 512 tokens with automatic truncation

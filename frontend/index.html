@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Empathy Engine - Giving AI a Human Voice with multi-emotion detection and expressive speech synthesis.">
+  <title>The Empathy Engine — Emotionally Expressive TTS</title>
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="badge-wrapper">
+        <span class="status-dot" id="system-status-dot"></span>
+        <span id="system-status-text">Connecting...</span>
+      </div>
+      <h1>The Empathy Engine</h1>
+      <p>AI-powered multi-emotion synthesis that transforms text into human-like speech with context-aware modulation.</p>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="error-banner"></div>
+
+    <!-- Input Card -->
+    <section class="card">
+      <div class="card-title">
+        <span>Synthesize Speech</span>
+        <span class="char-counter" id="char-count">0 / 2000</span>
+      </div>
+
+      <!-- Textarea -->
+      <div class="input-group">
+        <textarea id="text-input" placeholder="Type or paste any sentence to detect emotion and synthesize expressive speech..."></textarea>
+      </div>
+
+      <!-- Presets Chips -->
+      <div class="presets-container">
+        <button type="button" class="preset-chip" data-text="I got the promotion, but I'm going to miss my current teammates so much.">🥹 Bittersweet</button>
+        <button type="button" class="preset-chip" data-text="I am thrilled to start this new journey, though honestly terrified of failing.">😬 Nervous Excitement</button>
+        <button type="button" class="preset-chip" data-text="We finally won after years of being told we couldn't do it!">😤 Triumphant</button>
+        <button type="button" class="preset-chip" data-text="I can't believe this is happening right now, this is unacceptable!">🤬 Outraged</button>
+        <button type="button" class="preset-chip" data-text="The quarterly performance report is now available for download.">😐 Neutral</button>
+      </div>
+
+      <!-- Controls Row -->
+      <div class="controls-grid">
+        <div class="control-item">
+          <label for="voice-select">Voice Profile</label>
+          <select id="voice-select">
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label for="format-select">Audio Format</label>
+          <select id="format-select">
+            <option value="mp3" selected>MP3 Audio</option>
+            <option value="wav">WAV (Lossless)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Primary Action -->
+      <button id="generate-btn" class="btn-primary">
+        <span>✨ Synthesize Voice</span>
+      </button>
+    </section>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-wrapper">
+      <div class="spinner"></div>
+      <div class="loader-text">Analyzing emotions and interpolating vocal profile...</div>
+    </div>
+
+    <!-- Results Section -->
+    <section id="results-card" class="card results-card">
+      <div class="card-title">
+        <span>Detection & Synthesis Output</span>
+      </div>
+
+      <!-- Emotion Grid -->
+      <div class="emotion-grid">
+        <div class="emotion-badge-card" id="primary-card">
+          <div class="emotion-icon" id="primary-icon">😄</div>
+          <div class="emotion-details">
+            <div class="emotion-type">Primary Emotion</div>
+            <div class="emotion-name" id="primary-name">Joy</div>
+            <div class="emotion-score" id="primary-score">92% Confidence</div>
+          </div>
+        </div>
+
+        <div class="emotion-badge-card" id="secondary-card">
+          <div class="emotion-icon" id="secondary-icon">😢</div>
+          <div class="emotion-details">
+            <div class="emotion-type">Secondary Emotion</div>
+            <div class="emotion-name" id="secondary-name">Sadness</div>
+            <div class="emotion-score" id="secondary-score">45% Confidence</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blend Overview -->
+      <div class="blend-banner" id="blend-banner">
+        <div class="blend-title" id="blend-title">Blended Expression</div>
+        <div class="blend-text" id="blend-text">Bittersweet</div>
+        <div class="blend-desc" id="blend-desc">Happy yet touched with sorrow</div>
+      </div>
+
+      <!-- Audio Player -->
+      <div class="audio-box">
+        <audio id="audio-player" controls preload="metadata"></audio>
+        <div class="audio-actions">
+          <a id="download-link" href="#" class="btn-secondary" download>
+            <span>⬇ Download Audio</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Metadata Pills -->
+      <div class="meta-pills">
+        <div class="meta-pill">Engine: <span id="meta-engine">ELEVENLABS</span></div>
+        <div class="meta-pill">Voice: <span id="meta-voice">Sarah</span></div>
+        <div class="meta-pill">Intensity: <span id="meta-intensity">High</span></div>
+      </div>
+
+      <!-- SSML Details -->
+      <details>
+        <summary>View SSML Modulation Profile</summary>
+        <pre><code id="ssml-code">&lt;speak&gt;...&lt;/speak&gt;</code></pre>
+      </details>
+    </section>
+
+    <!-- History Section -->
+    <section id="history-section" class="card history-section">
+      <div class="card-title">
+        <span>Recent Generations</span>
+        <button id="clear-history-btn" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">Clear</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

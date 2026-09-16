@@ -9,8 +9,8 @@ Usage:
 """
 
 import argparse
-import sys
 import io
+import sys
 from pathlib import Path
 
 # Force UTF-8 output on Windows to avoid cp1252 encoding errors
@@ -44,7 +44,7 @@ def main():
     try:
         import uvicorn
         uvicorn.run(
-            "empathy_engine.backend.main:app",
+            "backend.main:app",
             host=args.host,
             port=args.port,
             reload=args.reload,
